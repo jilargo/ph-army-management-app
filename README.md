@@ -350,6 +350,15 @@ Reports
 Sample Generated Report
 <img src="images\SampleReport.png">
 
+Enlistment Applications List
+<img src="images\EnlistmentApplications.png">
+
+Promotions
+<img src="images\Promotion.png">
+
+Adding Units
+<img src="images\addUnits.png">
+
 📄 License
 This project is currently intended as a personal learning and development project.
 License information will be added when the project is ready for distribution.
