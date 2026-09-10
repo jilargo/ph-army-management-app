@@ -1,86 +1,337 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+<img src="images\login.png" alt="loginImage">
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+📋 Overview
 
-## About Laravel
+The PH Army Management System is a web-based administrative application built with Laravel and Livewire.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+The project is designed to provide a centralized system for managing military personnel information and related administrative processes.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+The application currently focuses on personnel management, authentication, role-based access, ranks, units, and administrative workflows.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+🎯 Project Goals
+The project is being developed not only as a personnel management application but also as a practical project for learning and applying professional software development practices including:
 
-## Learning Laravel
+Laravel application development
+Livewire development
+Database design
+Authentication and authorization
+Validation
+Automated testing
+Git and GitHub workflows
+QA automation
+CI/CD
+Staging and production deployment
+Application security
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+✨ Features
+👤 Personnel Management
+Create personnel records
+View personnel records
+Edit personnel information
+Delete personnel records
+Assign military ranks
+Assign personnel to units
+Manage personnel status
+Store contact and personal information
+Paginated personnel listings
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+🎖️ Military Ranks
+Manage military ranks
+Assign ranks to personnel
+Display rank information alongside personnel records
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+🏢 Units
+Manage parent units and subordinate units
+Associate personnel with organizational units
+Support hierarchical unit structures
 
-## Agentic Development
+🔐 Authentication
+User registration
+User login
+User logout
+Session regeneration after authentication
+Password hashing
+Role-based application access
+Separate administrator and user dashboards
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+📅 Administrative Records
+Planned and/or under development:
+Leave management
+Promotions
+Training records
+Personnel history
+Unit assignments
 
-```bash
-composer require laravel/boost --dev
+🛠️ Technology Stack
+Technology Purpose
+PHP 8.4+ Backend programming language
+Laravel Application framework
+Livewire Reactive UI and application interactions
+Blade Server-side templating
+Tailwind CSS User interface styling
+Vite Frontend asset development and bundling
+SQLite Local development database
+Git / GitHub Version control and source management
+🏗️ Application Architecture
 
-php artisan boost:install
-```
+The application follows Laravel's MVC architecture with Livewire components handling interactive application features.
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Browser
+│
+▼
+Laravel Routes
+│
+▼
+Livewire Components
+│
+├── Validation
+├── Application Logic
+└── UI State
+│
+▼
+Eloquent Models
+│
+▼
+Database
+🔐 Authentication & Authorization
 
-## Contributing
+The application uses Laravel's authentication system.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Users authenticate using their email address and password.
 
-## Code of Conduct
+The system is designed around different user roles:
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+                    ┌─────────────────────┐
+                    │       User          │
+                    └──────────┬──────────┘
+                               │
+                       Authentication
+                               │
+                ┌──────────────┴──────────────┐
+                │                             │
+          Administrator                    User
+                │                             │
+                ▼                             ▼
+        Admin Dashboard                User Dashboard
+                │
+                ▼
+       Personnel Management
 
-## Security Vulnerabilities
+Administrators are intended to manage user accounts and administrative records, while regular users have access to functionality appropriate to their assigned role.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+📊 Database
 
-## License
+The application currently uses SQLite for local development.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Major database areas include:
 
-## Mail Configuration
+users
+personnels
+ranks
+parent_units
+units
+promotions
+training
+leaves
 
-All email settings are driven entirely by environment variables in `.env` (see `.env.example` for reference):
+Database relationships are implemented using Laravel Eloquent relationships and foreign keys.
 
-| Variable | Default | Purpose |
-|----------|---------|---------|
-| `MAIL_MAILER` | `log` | Mail transport. Use `smtp` in production, `log` in local development. |
-| `MAIL_HOST` | `127.0.0.1` | SMTP server host. |
-| `MAIL_PORT` | `2525` | SMTP server port. |
-| `MAIL_USERNAME` | (empty) | SMTP username (if required by your provider). |
-| `MAIL_PASSWORD` | (empty) | SMTP password (if required by your provider). |
-| `MAIL_FROM_ADDRESS` | `hello@example.com` | "From" address for all outgoing emails. |
-| `MAIL_FROM_NAME` | `APP_NAME` | "From" name shown in outgoing emails. |
-| `MAIL_SCHEME` | (empty) | Transport scheme, e.g. `smtp` or `smtps` (TLS). |
+⚙️ Requirements
 
-With the default `MAIL_MAILER=log`, emails are written to `storage/logs/laravel.log` so the application runs without any SMTP provider. To send real mail, set the mailer and SMTP credentials:
+Before installing the project, make sure the following are available:
 
-```dotenv
-MAIL_MAILER=smtp
-MAIL_HOST=smtp.gmail.com
-MAIL_PORT=587
-MAIL_USERNAME=your@email.com
-MAIL_PASSWORD=your-app-password
-MAIL_SCHEME=smtp
-MAIL_FROM_ADDRESS=your@email.com
-MAIL_FROM_NAME="PH Army Management System"
-```
+PHP 8.4+
+Composer
+Node.js and npm
+Git
+SQLite
+
+For local development, this project can be run using Laravel Herd or another Laravel-compatible development environment.
+
+🚀 Installation
+
+1. Clone the repository
+   git clone https://github.com/jilargo/ph-army-management-app.git
+
+Navigate into the project:
+
+cd ph-army-management-app 2. Install PHP dependencies
+composer install 3. Install frontend dependencies
+npm install 4. Create the environment file
+
+Copy the example environment file:
+
+cp .env.example .env
+
+On Windows, you can also copy .env.example manually and rename the copy to:
+
+.env 5. Generate the application key
+php artisan key:generate 6. Configure the database
+
+For local development, configure SQLite in .env:
+
+DB_CONNECTION=sqlite
+
+Create the SQLite database file if it does not already exist:
+
+database/ph-army.sqlite
+
+The local SQLite database is intentionally excluded from Git using .gitignore.
+
+7. Run database migrations
+   php artisan migrate
+
+If seeders are available and you want to populate development data:
+
+php artisan db:seed
+
+Or:
+
+php artisan migrate:fresh --seed
+
+migrate:fresh --seed deletes existing database tables, so use it only when resetting a development database.
+
+8. Build frontend assets
+
+For development:
+
+npm run dev
+
+For a production-style asset build:
+
+npm run build
+▶️ Running the Application
+
+When using Laravel Herd, the application can be accessed through the configured Herd domain.
+
+Example:
+
+http://ph-army-management-app.test
+
+If you are not using Herd, Laravel's development server can be started with:
+
+php artisan serve
+🧪 Testing
+
+Run the Laravel automated test suite with:
+
+php artisan test
+
+The project is intended to eventually include automated coverage for:
+
+Authentication
+Authorization
+Personnel CRUD operations
+Validation
+Database relationships
+Leave workflows
+Promotion workflows
+Administrative functions
+
+Browser-based QA automation may also be implemented using Playwright.
+
+🔄 Development Workflow
+
+The project is developed with a development → staging → production workflow in mind.
+
+Developer
+│
+▼
+Local Development
+│
+▼
+Feature Branch
+│
+▼
+Pull Request
+│
+▼
+CI / Automated Tests
+│
+▼
+Staging
+│
+▼
+QA Testing
+│
+▼
+Production
+
+The main branch is intended to represent the stable application code.
+
+Feature development should preferably be performed on separate branches before being merged into main.
+
+🔒 Security
+
+Sensitive environment configuration must not be committed to the repository.
+
+The following should remain outside Git:
+
+.env
+Application secrets
+API keys
+Production credentials
+Database credentials
+Local SQLite databases
+vendor/
+node_modules/
+
+The project uses .gitignore to prevent local development files and sensitive configuration from being committed.
+
+Never share APP_KEY or production environment credentials with QA testers or other users.
+
+🗺️ Roadmap
+
+Planned improvements include:
+
+Complete role-based authorization
+
+Administrator user management
+
+Personnel profile pages
+
+Unit management interface
+
+Leave request workflow
+
+Leave approval workflow
+
+Promotion management
+
+Training management
+
+Personnel history
+
+Dashboard statistics
+
+Audit logging
+
+Automated feature tests
+
+Playwright QA automation
+
+CI/CD pipeline
+
+Staging environment
+
+Production deployment
+
+Laravel application development
+Livewire development
+Database design
+Authentication and authorization
+Validation
+Automated testing
+Git and GitHub workflows
+QA automation
+CI/CD
+Staging and production deployment
+Application security
+
+📄 License
+This project is currently intended as a personal learning and development project.
+License information will be added when the project is ready for distribution.
+
+👨‍💻 Author
+James Ian Largo
+GitHub: @jilargo
