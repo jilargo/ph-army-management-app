@@ -344,11 +344,7 @@ Task Management
 Filling Leave Request
 <img src="images\LeaveRequest.png">
 
-Reports
-<img src="images\Reports.png">
 
-Sample Generated Report
-<img src="images\SampleReport.png">
 
 Enlistment Applications List
 <img src="images\EnlistmentApplications.png">
@@ -358,6 +354,12 @@ Promotions
 
 Adding Units
 <img src="images\addUnits.png">
+
+Reports
+<img src="images\Reports.png">
+
+Sample Generated Report
+<img src="images\SampleReport.png">
 
 📄 License
 This project is currently intended as a personal learning and development project.
