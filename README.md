@@ -2,9 +2,9 @@
 
 📋 Overview
 
-The PH Army Management System is a web-based administrative application built with Laravel and Livewire.
+The Army Reservist Management System is a web-based administrative application built with Laravel and Livewire.
 
-The project is designed to provide a centralized system for managing military personnel information and related administrative processes.
+The project is designed to provide a centralized system for managing military reservist information and related administrative processes.
 
 The application currently focuses on personnel management, authentication, role-based access, ranks, units, and administrative workflows.
 
@@ -327,6 +327,28 @@ QA automation
 CI/CD
 Staging and production deployment
 Application security
+
+📸 Screenshots
+Dashboard
+<img src="images\Dashboard.png">
+
+Soldiers List
+<img src="images\Index.png">
+
+Army Reservist Application
+<img src="images\Application.png">
+
+Task Management
+<img src="images\Task.png">
+
+Filling Leave Request
+<img src="images\LeaveRequest.png">
+
+Reports
+<img src="images\Reports.png">
+
+Sample Generated Report
+<img src="images\SampleReport.png">
 
 📄 License
 This project is currently intended as a personal learning and development project.

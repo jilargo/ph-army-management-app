@@ -115,7 +115,7 @@ new #[Layout('layouts.auth')] class extends Component
                     Republic of the Philippines &bull; Department of National Defense
                 </p>
                 <h1 class="mt-2 text-3xl font-bold text-slate-900">
-                    Philippine Army Recruitment
+                   Army Reservist Recruitment
                 </h1>
                 <p class="mt-2 text-sm text-slate-500 max-w-xl mx-auto">
                     Apply to join the Philippine Army. Submit your personal information and upload the

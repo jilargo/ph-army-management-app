@@ -75,7 +75,7 @@ new #[Layout('layouts.auth')] class extends Component
                         </p>
 
                         <h1 class="text-4xl font-bold leading-tight text-white xl:text-5xl">
-                            Philippine Army
+                            Army Reservist
                             <span class="block text-slate-300">
                                 Management System
                             </span>

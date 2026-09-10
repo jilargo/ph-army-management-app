@@ -22,7 +22,7 @@ new #[Layout('layouts.app')] class extends Component
     public string $last_name = '';
     public ?string $suffix = null;
     public string $date_of_birth = '';
-    public string $status = '';
+
     public string $gender = '';
     public string $date_of_entry = '';
     public string $personal_email = '';
@@ -52,7 +52,7 @@ new #[Layout('layouts.app')] class extends Component
             'suffix' => 'nullable',
             'date_of_birth' => 'required',
             'gender' => 'required',
-            'status' => 'required',
+
             'rank_id' => 'required|integer|exists:ranks,rank_id',
             'unit_id' => 'required|integer|exists:units,unit_id',
             'date_of_entry' => 'required',
@@ -106,9 +106,9 @@ new #[Layout('layouts.app')] class extends Component
             </p>
         </div>
         {{-- Form --}}
-        
+
         <form class="space-y-8" wire:submit="save_personnel">
-           @csrf
+            @csrf
             {{-- Personal Information --}}
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
 
@@ -524,16 +524,16 @@ new #[Layout('layouts.app')] class extends Component
 
                         <div class="shrink-0">
                             @if ($this->profile_picture?->isPreviewable())
-                                <img
-                                    src="{{ $this->profile_picture->temporaryUrl() }}"
-                                    alt="Profile preview"
-                                    class="h-24 w-24 rounded-full object-cover border-4 border-slate-100">
+                            <img
+                                src="{{ $this->profile_picture->temporaryUrl() }}"
+                                alt="Profile preview"
+                                class="h-24 w-24 rounded-full object-cover border-4 border-slate-100">
                             @else
-                                <div class="flex h-24 w-24 items-center justify-center rounded-full bg-slate-100 text-slate-400">
-                                    <svg class="h-10 w-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                                    </svg>
-                                </div>
+                            <div class="flex h-24 w-24 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+                                <svg class="h-10 w-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                            </div>
                             @endif
                         </div>
 

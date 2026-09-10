@@ -3,6 +3,7 @@
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Computed;
+use Illuminate\Database\QueryException;
 use Livewire\WithPagination;
 use App\Models\Personnel;
 use App\Models\Units;
@@ -30,10 +31,10 @@ new #[Layout('layouts.app')] class extends Component
                     $query->where('first_name', 'like', "%{$this->search}%")
                         ->orWhere('middle_name', 'like', "%{$this->search}%")
                         ->orWhere('last_name', 'like', "%{$this->search}%")
-                        ->orWhereHas('rank', fn ($q) => $q->where('rank_name', 'like', "%{$this->search}%"));
+                        ->orWhereHas('rank', fn($q) => $q->where('rank_name', 'like', "%{$this->search}%"));
                 });
             })
-            ->when($this->unit_id, fn ($query) => $query->where('unit_id', $this->unit_id))
+            ->when($this->unit_id, fn($query) => $query->where('unit_id', $this->unit_id))
             ->paginate(7);
 
         $personnel->load('rank', 'units');
@@ -53,43 +54,116 @@ new #[Layout('layouts.app')] class extends Component
 
 
     // Holds the ID of the personnel selected for deletion.
-// Also used to determine whether the delete modal should be displayed.
-public ?int $personnelToDelete = null;
+    // Also used to determine whether the delete modal should be displayed.
+    public ?int $personnelToDelete = null;
 
-// Holds the complete Personnel model.
-// Used by the modal to display the selected personnel's information.
-public ?Personnel $personnelBeingDeleted = null;
+    // Holds the complete Personnel model.
+    // Used by the modal to display the selected personnel's information.
+    public ?Personnel $personnelBeingDeleted = null;
 
-public function confirmDelete(int $personnel_id)
-{
-    // Step 1: Store the selected ID.
-    // Changing this from null to an ID causes Livewire to re-render the component,
-    // which makes the modal appear when using @if($personnelToDelete).
-    $this->personnelToDelete = $personnel_id;
+    // Holds the deletion error message.
+    // This is displayed inside the delete modal when deletion fails.
+    public ?string $deleteError = null;
 
-    // Step 2: Find the corresponding Personnel record from the database.
-    // The returned model is stored so the modal can display its data.
-    $this->personnelBeingDeleted = Personnel::findOrFail($personnel_id);
 
-    // Debug: inspect the Personnel model.
-    // dd($this->personnelBeingDeleted);
+    public function confirmDelete(int $personnel_id)
+    {
+        // Clear any previous deletion error.
+        // This is important when opening the modal for another personnel.
+        $this->deleteError = null;
 
-    // Debug: inspect the Personnel's related Rank model.
-    // dd($this->personnelBeingDeleted->rank);
-}
+        // Step 1: Store the selected ID.
+        // Changing this from null to an ID causes Livewire to re-render the component,
+        // which makes the modal appear when using @if($personnelToDelete).
+        $this->personnelToDelete = $personnel_id;
+
+        // Step 2: Find the corresponding Personnel record from the database.
+        // The returned model is stored so the modal can display its data.
+        $this->personnelBeingDeleted = Personnel::findOrFail($personnel_id);
+
+        // Debug: inspect the Personnel model.
+        // dd($this->personnelBeingDeleted);
+
+        // Debug: inspect the Personnel's related Rank model.
+        // dd($this->personnelBeingDeleted->rank);
+    }
+
 
     public function deletePersonnel()
     {
-        Personnel::findOrFail($this->personnelToDelete)->delete();
-        $this->personnelToDelete = null;
-        session()->flash('status', 'Personnel Successfully Deleted');
-        $this->redirectRoute('personnel.index');
+        try {
+
+            // Find the personnel selected for deletion.
+            $personnel = Personnel::findOrFail($this->personnelToDelete);
+
+            // Attempt to delete the personnel.
+            //
+            // If this personnel has related records such as promotions,
+            // the database will reject the deletion because of the
+            // foreign-key constraint.
+            $personnel->delete();
+
+
+            // ---------------------------------------------------------
+            // DELETE SUCCESSFUL
+            // ---------------------------------------------------------
+
+            // Clear the selected personnel.
+            $this->personnelToDelete = null;
+
+            // Clear the Personnel model used by the modal.
+            $this->personnelBeingDeleted = null;
+
+            // Clear any previous deletion error.
+            $this->deleteError = null;
+
+
+            // Show success message.
+            session()->flash(
+                'status',
+                'Personnel successfully deleted.'
+            );
+
+
+            // Redirect back to the personnel list.
+            $this->redirectRoute('personnel.index');
+
+
+        } catch (QueryException $e) {
+
+            // SQLite error code 19 means a foreign-key constraint
+            // prevented the deletion.
+            if ($e->errorInfo[1] == 19) {
+
+                // IMPORTANT:
+                //
+                // Do NOT set $personnelToDelete to null here.
+                //
+                // If we set it to null, the @if($personnelToDelete)
+                // condition becomes false and Livewire will remove
+                // the modal from the page.
+                //
+                // We want the modal to remain open so the user can
+                // immediately see why the deletion failed.
+
+                $this->deleteError =
+                    'Personnel cannot be deleted because this soldier has existing service history. '
+                    . 'Please retain the personnel record to preserve their promotions, training, '
+                    . 'leave, and other service records.';
+
+                return;
+            }
+
+            // If this is a different database error, allow Laravel
+            // to report the actual problem.
+            throw $e;
+        }
     }
 };
 
 ?>
 
-<div class="w-full min-w-0 mt-3" >
+<div class="w-full min-w-0 mt-3">
 
     {{-- HEADER --}}
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 mx-3">
@@ -112,24 +186,32 @@ public function confirmDelete(int $personnel_id)
                 wire:model.live="unit_id"
                 class="w-full sm:w-48 border border-slate-300 rounded-lg px-4 py-2 text-sm bg-white">
                 <option value="">All Units</option>
+
                 @foreach ($this->units as $unit)
-                    <option value="{{ $unit->unit_id }}">{{ $unit->unit_name }}</option>
+                    <option value="{{ $unit->unit_id }}">
+                        {{ $unit->unit_name }}
+                    </option>
                 @endforeach
+
             </select>
 
             <a
-                    href="/personnel/create"
-                    class="bg-slate-900 text-white px-4 py-2 rounded-lg text-sm hover:bg-slate-700 transition"
-                >
-                    + Add Personnel
-                </a>
+                href="/personnel/create"
+                class="bg-slate-900 text-white px-4 py-2 rounded-lg text-sm hover:bg-slate-700 transition">
+                + Add Personnel
+            </a>
 
         </div>
 
     </div>
 
-    {{--MODAL FOR DELETE --}}
+
+    {{-- ========================================================= --}}
+    {{-- MODAL FOR DELETE                                         --}}
+    {{-- ========================================================= --}}
+
     @if ($personnelToDelete)
+
     <div class="fixed inset-0 z-50 flex items-center justify-center">
 
         {{-- Background --}}
@@ -155,20 +237,31 @@ public function confirmDelete(int $personnel_id)
                             d="M12 9v2m0 4h.01
                                  M12 5.5a6.5 6.5 0 110 13
                                  6.5 6.5 0 010-13z" />
+
                     </svg>
 
                 </div>
 
                 <div>
+
                     <h3 class="text-lg font-semibold text-gray-900">
+
                         Delete
+
                         <span class="text-blue-600">
+
                             {{ $personnelBeingDeleted->rank?->rank_name }}
+
                             {{ $personnelBeingDeleted->first_name }}
+
                             {{ $personnelBeingDeleted->last_name }}
+
                         </span>
+
                         ?
+
                     </h3>
+
 
                     <p class="mt-2 text-sm text-gray-600">
                         Are you sure you want to delete this personnel?
@@ -177,23 +270,67 @@ public function confirmDelete(int $personnel_id)
                     <p class="mt-1 text-sm text-red-600">
                         This action cannot be undone.
                     </p>
+
+
+                    {{-- ================================================= --}}
+                    {{-- DELETE ERROR MESSAGE                              --}}
+                    {{-- ================================================= --}}
+                    @if ($deleteError)
+
+                        <div class="mt-4 rounded-lg border border-red-200 bg-red-50 p-3">
+
+                            <div class="flex items-start gap-2">
+
+                                {{-- Error Icon --}}
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    stroke-width="2">
+
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M12 9v2m0 4h.01
+                                           M12 5.5a6.5 6.5 0
+                                           110 13 6.5 6.5 0
+                                           010-13z" />
+
+                                </svg>
+
+                                {{-- Error Message --}}
+                                <p class="text-sm text-red-700">
+                                    {{ $deleteError }}
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    @endif
+
                 </div>
 
             </div>
+
 
             {{-- Buttons --}}
             <div class="flex justify-end gap-3 mt-6">
 
                 <button
                     type="button"
-                    wire:click="$set('personnelToDelete', null)"
+                    wire:click="$set('personnelToDelete', null); $set('deleteError', null)"
                     class="px-4 py-2 text-sm font-medium
                            text-gray-700 bg-white
                            border border-gray-300 rounded-lg
                            hover:bg-gray-50 transition">
 
                     Cancel
+
                 </button>
+
 
                 <button
                     type="button"
@@ -203,14 +340,16 @@ public function confirmDelete(int $personnel_id)
                            hover:bg-red-700 transition">
 
                     Delete
+
                 </button>
 
             </div>
 
         </div>
-    </div>
-    @endif
 
+    </div>
+
+    @endif
 
 
     {{-- TABLE CONTAINER --}}
@@ -219,7 +358,9 @@ public function confirmDelete(int $personnel_id)
         <table class="min-w-max divide-y divide-slate-200 text-sm">
 
             <thead class="bg-slate-50">
+
                 <tr>
+
                     <th class="px-6 py-4 text-left font-semibold text-slate-700 whitespace-nowrap">
                         Rank
                     </th>
@@ -268,7 +409,6 @@ public function confirmDelete(int $personnel_id)
                         Date of Entry
                     </th>
 
-                    
                     <th class="px-6 py-4 text-left font-semibold text-slate-700 whitespace-nowrap">
                         Status
                     </th>
@@ -282,7 +422,9 @@ public function confirmDelete(int $personnel_id)
                     </th>
 
                 </tr>
+
             </thead>
+
 
             <tbody class="divide-y divide-slate-100 bg-white">
 
@@ -295,17 +437,28 @@ public function confirmDelete(int $personnel_id)
                     <td class="px-6 py-4 text-slate-600 whitespace-nowrap">
                         {{ $personnel->rank->rank_name }}
                     </td>
+
                     <td class="px-6 py-4 text-slate-600 whitespace-nowrap">
                         {{ $personnel->units?->unit_name ?? '—' }}
                     </td>
+
                     <td class="px-6 py-4 font-medium text-slate-900 whitespace-nowrap">
-                        <a href="{{ route('personnel.profile', $personnel->personnel_id) }}"
+
+                        <a
+                            href="{{ route('personnel.profile', $personnel->personnel_id) }}"
                             class="flex items-center gap-3 hover:text-slate-600 transition">
-                            <x-avatar :personnel="$personnel" size="sm"/>
+
+                            <x-avatar
+                                :personnel="$personnel"
+                                size="sm"
+                            />
+
                             <span>
                                 {{ $personnel->first_name }}
                             </span>
+
                         </a>
+
                     </td>
 
                     <td class="px-6 py-4 text-slate-600 whitespace-nowrap">
@@ -344,8 +497,6 @@ public function confirmDelete(int $personnel_id)
                         {{ $personnel->date_of_entry }}
                     </td>
 
-                    
-
                     <td class="px-6 py-4 text-slate-600 whitespace-nowrap">
                         <x-personnel.status-badge :status="$personnel->status" />
                     </td>
@@ -355,103 +506,128 @@ public function confirmDelete(int $personnel_id)
                     </td>
 
                     <td class="px-6 py-4 whitespace-nowrap">
+
                         <div class="flex items-center gap-2">
 
                             {{-- View --}}
-                            <a href="{{ route('personnel.profile', $personnel->personnel_id) }}"
+                            <a
+                                href="{{ route('personnel.profile', $personnel->personnel_id) }}"
                                 class="inline-flex items-center gap-1.5 px-3 py-1.5
                                        text-sm font-medium text-slate-600
                                        border border-slate-200 rounded-md
                                        hover:bg-slate-50 hover:text-slate-900
                                        transition duration-150">
-                                <svg xmlns="http://www.w3.org/2000/svg"
+
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
                                     class="w-4 h-4"
                                     fill="none"
                                     viewBox="0 0 24 24"
                                     stroke="currentColor"
                                     stroke-width="2">
-                                    <path stroke-linecap="round"
+
+                                    <path
+                                        stroke-linecap="round"
                                         stroke-linejoin="round"
-                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                    <path stroke-linecap="round"
+                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+
+                                    <path
+                                        stroke-linecap="round"
                                         stroke-linejoin="round"
-                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943
+                                           9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943
+                                           -9.542-7z" />
+
                                 </svg>
+
                                 View
+
                             </a>
 
-                            {{-- Edit --}}
-                            <a href="{{ route('personnel.edit', $personnel->personnel_id) }}"
 
+                            {{-- Edit --}}
+                            <a
+                                href="{{ route('personnel.edit', $personnel->personnel_id) }}"
                                 class="inline-flex items-center gap-1.5 px-3 py-1.5
-              text-sm font-medium text-indigo-600
-              border border-indigo-200 rounded-md
-              hover:bg-indigo-50 hover:text-indigo-700
-              transition duration-150">
+                                       text-sm font-medium text-indigo-600
+                                       border border-indigo-200 rounded-md
+                                       hover:bg-indigo-50 hover:text-indigo-700
+                                       transition duration-150">
 
                                 {{-- Edit Icon --}}
-                                <svg xmlns="http://www.w3.org/2000/svg"
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
                                     class="w-4 h-4"
                                     fill="none"
                                     viewBox="0 0 24 24"
                                     stroke="currentColor"
                                     stroke-width="2">
 
-                                    <path stroke-linecap="round"
+                                    <path
+                                        stroke-linecap="round"
                                         stroke-linejoin="round"
                                         d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5
-                                            m-9-4l9-9m0 0l3 3m-3-3v5" />
+                                           m-9-4l9-9m0 0l3 3m-3-3v5" />
+
                                 </svg>
 
                                 Edit
+
                             </a>
 
 
                             {{-- Delete --}}
-                            <button type="button"
-                                wire:click="confirmDelete( {{ $personnel->personnel_id }} )"
+                            <button
+                                type="button"
+                                wire:click="confirmDelete({{ $personnel->personnel_id }})"
                                 class="inline-flex items-center gap-1.5 px-3 py-1.5
-                                        text-sm font-medium text-red-600
-                                        border border-red-200 rounded-md
-                                        hover:bg-red-50 hover:text-red-700
-                                        transition duration-150">
+                                       text-sm font-medium text-red-600
+                                       border border-red-200 rounded-md
+                                       hover:bg-red-50 hover:text-red-700
+                                       transition duration-150">
 
                                 {{-- Delete Icon --}}
-                                <svg xmlns="http://www.w3.org/2000/svg"
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
                                     class="w-4 h-4"
                                     fill="none"
                                     viewBox="0 0 24 24"
                                     stroke="currentColor"
                                     stroke-width="2">
 
-                                    <path stroke-linecap="round"
+                                    <path
+                                        stroke-linecap="round"
                                         stroke-linejoin="round"
                                         d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862
                                            a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6
                                            M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3
                                            m-7 0h10" />
+
                                 </svg>
 
                                 Delete
+
                             </button>
 
                         </div>
 
-    </td>
+                    </td>
 
-    </tr>
+                </tr>
 
-    @endforeach
+                @endforeach
 
-    </tbody>
+            </tbody>
 
-    </table>
+        </table>
+
+    </div>
 
 
-</div>
-<div class="mt-6 mx-4">
-    {{ $this->personnels->links('components.pagination.personnel') }}
-</div>
+    <div class="mt-6 mx-4">
 
+        {{ $this->personnels->links('components.pagination.personnel') }}
+
+    </div>
 
 </div>
