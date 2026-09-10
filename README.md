@@ -360,6 +360,11 @@ Reports
 
 Sample Generated Report
 <img src="images\SampleReport.png">
+<img src="images\report2.png">
+<img src="images\report3.png">
+<img src="images\report4.png">
+<img src="images\report5.png">
+<img src="images\report6.png">
 
 📄 License
 This project is currently intended as a personal learning and development project.
