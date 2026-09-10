@@ -367,9 +367,11 @@ Sample Generated Report
 <img src="images\report6.png">
 
 📄 License
+
 This project is currently intended as a personal learning and development project.
 License information will be added when the project is ready for distribution.
 
 👨‍💻 Author
+
 James Ian Largo
 GitHub: @jilargo
